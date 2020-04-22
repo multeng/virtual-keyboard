@@ -31,7 +31,7 @@ function addKeyboard() {
 addKeyboard();
 
 // Добавляем описание
-function addDescription() { 
+function addDescription() {
     const body = document.getElementsByTagName('body')[0];
     const descriptionDiv = document.createElement('div');
     descriptionDiv.classList.add('description-container');
@@ -120,34 +120,25 @@ buttons = [[
     { key: 'ArrowRight', type: 'service', valueEn: 'Right', shiftValueEn: 'Right', valueRu: 'Right', shiftValueRu: 'Right' },
 ]];
 
-//используем localStorage для запоминания языка клавиатуры
-if (localStorage.getItem('lang') === 'en') {
-    localStorage.setItem('lang', 'en');
-} else {
-    localStorage.setItem('lang', 'ru');
-}
+
 let lang = localStorage.getItem('lang');
-let caps = false;
-let shift = false;
+let isCapsEnable = false;
+let isShiftEnable = false;
 //Рисуем клавиатуру
 function makeKeyboard(array) {
     array.forEach((secondArray, index) => {
-        makeDiv(index);
+        makeRowKeyboard(index);
+        const row = document.querySelector(`.row-${index + 1}`)
         secondArray.forEach(button => {
-            let value;
-            if (lang === 'ru') {
-                value = button.valueRu;
-            } else if (lang === 'en') {
-                value = button.valueEn;
-            }
-            setButton(index, makeButton(button.key, button.type, value));
+            const value = lang === 'ru' ? button.valueRu : button.valueEn;
+            row.appendChild(makeButton(button.key, button.type, value));
         });
     });
 }
 makeKeyboard(buttons);
 
 //Функиця делает контейнер с рядом клавиш внутри контейнера keyboard
-function makeDiv(rowNumber) {
+function makeRowKeyboard(rowNumber) {
     const keyboard = document.querySelector('.keyboard');
     const row = document.createElement('div');
     row.classList.add(`row-${rowNumber + 1}`);
@@ -164,11 +155,6 @@ function makeButton(key, type, value) {
     return button;
 };
 
-//Функция устанавливает кнопку в ряд
-function setButton(rowNumber, button) {
-    const row = document.querySelector(`.row-${rowNumber + 1}`);
-    row.appendChild(button);
-}
 
 //Обработчик событий
 function handler() {
@@ -177,39 +163,37 @@ function handler() {
     body.addEventListener('keydown', event => {
         const button = document.querySelector(`span[data-key=${event.code}]`);
         button.classList.add('button__color');
-        if (event.code == 'ControlLeft') {
-            if (lang == 'ru') {
-                lang = 'en';
-                localStorage.setItem('lang', 'en')
-            } else if (lang == 'en') {
-                lang = 'ru';
-                localStorage.setItem('lang', 'ru')
-            }
-            reMakeKeyboard(buttons);
-        }
-        if (event.code == 'CapsLock') {
-            caps ? caps = false : caps = true;
-            reMakeKeyboard(buttons);
-        }
-        if (event.code == 'ShiftLeft') {
-            shift ? shift = false : shift = true;
-            reMakeKeyboard(buttons);
-        }
-        if (event.code == 'ShiftRight') {
-            shift ? shift = false : shift = true;
-            reMakeKeyboard(buttons);
+        switch (event.code) {
+            case 'ControlLeft':
+                if (lang === 'ru') {
+                    lang = 'en';
+                    localStorage.setItem('lang', 'en')
+                } else if (lang === 'en') {
+                    lang = 'ru';
+                    localStorage.setItem('lang', 'ru')
+                }
+                reMakeKeyboard(buttons);
+                break;
+            case 'CapsLock':
+                isCapsEnable = !isCapsEnable;
+                reMakeKeyboard(buttons);
+                break;
+            case 'ShiftLeft' || 'ShiftRight':
+                isShiftEnable = !isShiftEnable;
+                reMakeKeyboard(buttons);
+                break;
         }
     });
     //обрабатываем keyup
     body.addEventListener('keyup', event => {
         const button = document.querySelector(`span[data-key=${event.code}]`);
         button.classList.remove('button__color');
-        if (event.code == 'ShiftLeft') {
-            shift ? shift = false : shift = true;
+        if (event.code === 'ShiftLeft') {
+            isShiftEnable = !isShiftEnable;
             reMakeKeyboard(buttons);
         }
-        if (event.code == 'ShiftRight') {
-            shift ? shift = false : shift = true;
+        if (event.code === 'ShiftRight') {
+            isShiftEnable = !isShiftEnable;
             reMakeKeyboard(buttons);
         }
     });
@@ -217,10 +201,11 @@ function handler() {
     //обработчик мыши
     body.addEventListener('mousedown', event => {
         const textArea = document.querySelector('.form-container__textarea');
-        let textAreaContent = textArea.value;
-        let pressedButton = event.target;
-        let typeButton = pressedButton.getAttribute('data-type');
-        let valueButton = pressedButton.innerText;
+        const textAreaContent = textArea.value;
+        const pressedButton = event.target;
+        const typeButton = pressedButton.getAttribute('data-type');
+        const valueButton = pressedButton.innerText;
+        const serviceTypeButton = pressedButton.getAttribute('data-key');
         if (typeButton === 'letter' || typeButton === 'digit' || typeButton === 'service') {
             pressedButton.classList.add('button__color');
         }
@@ -228,43 +213,57 @@ function handler() {
             textArea.value += valueButton;
         }
         if (typeButton === 'service') {
-            let serviceTypeButton = pressedButton.getAttribute('data-key');
-            if (serviceTypeButton === 'Tab') {
-                textArea.value += '\t';
-            } else if (serviceTypeButton === 'Enter') {
-                textArea.value += '\n';
-            } else if (serviceTypeButton === 'CapsLock') {
-                caps ? caps = false : caps = true;
-                reMakeKeyboard(buttons);
-            } else if (serviceTypeButton === 'ControlLeft') {
-                if (lang == 'ru') {
-                    lang = 'en';
-                    localStorage.setItem('lang', 'en')
-                } else if (lang == 'en') {
-                    lang = 'ru';
-                    localStorage.setItem('lang', 'ru')
-                }
-                reMakeKeyboard(buttons);
-            } else if (serviceTypeButton === 'Backspace') {
-                textArea.value = textAreaContent.slice(0, textArea.selectionStart - 1) + textAreaContent.slice(textArea.selectionStart, textAreaContent.length);
-            } else if (serviceTypeButton === 'Delete') {
-                textArea.value = textAreaContent.slice(0, textArea.selectionStart) + textAreaContent.slice(textArea.selectionStart + 1, textAreaContent.length);
-            } else if (serviceTypeButton === 'Space') {
-                textArea.value += ' ';
-            } else if (serviceTypeButton === 'ShiftLeft') {
-                shift ? shift = false : shift = true;
-                reMakeKeyboard(buttons);
-            } else if (serviceTypeButton === 'ShiftRight') {
-                shift ? shift = false : shift = true;
-                reMakeKeyboard(buttons);
+            switch (serviceTypeButton) {
+                case 'Tab':
+                    textArea.value += '\t';
+                    break;
+                case 'Enter':
+                    textArea.value += '\n';
+                    break;
+                case 'CapsLock':
+                    isCapsEnable = !isCapsEnable;
+                    reMakeKeyboard(buttons);
+                    break;
+                case 'ControlLeft':
+                    if (lang == 'ru') {
+                        lang = 'en';
+                        localStorage.setItem('lang', 'en')
+                    } else if (lang == 'en') {
+                        lang = 'ru';
+                        localStorage.setItem('lang', 'ru')
+                    }
+                    reMakeKeyboard(buttons);
+                    break;
+                case 'Backspace':
+                    textArea.value = textAreaContent.slice(0, textArea.selectionStart - 1) + textAreaContent.slice(textArea.selectionStart, textAreaContent.length);
+                    break;
+                case 'Delete':
+                    textArea.value = textAreaContent.slice(0, textArea.selectionStart) + textAreaContent.slice(textArea.selectionStart + 1, textAreaContent.length);
+                    break;
+                case 'Space':
+                    textArea.value += ' ';
+                    break;
+                case 'ShiftLeft':
+                    isShiftEnable = !isShiftEnable;
+                    reMakeKeyboard(buttons);
+                    break;
+                case 'ShiftRight':
+                    isShiftEnable = !isShiftEnable;
+                    reMakeKeyboard(buttons);
+                    break;
             }
         }
     });
     body.addEventListener('mouseup', event => {
-        let pressedButton = event.target;
-        let typeButton = pressedButton.getAttribute('data-type');
+        const pressedButton = event.target;
+        const typeButton = pressedButton.getAttribute('data-type');
+        const serviceTypeButton = pressedButton.getAttribute('data-key');
         if (typeButton === 'letter' || typeButton === 'digit' || typeButton === 'service') {
             pressedButton.classList.remove('button__color');
+        }
+        if (typeButton === 'service' && serviceTypeButton === 'ShiftLeft' || serviceTypeButton === 'ShiftRight') {
+            isShiftEnable = !isShiftEnable;
+            reMakeKeyboard(buttons);
         }
     });
 }
@@ -275,32 +274,32 @@ handler()
 function reMakeKeyboard(array) {
     array.forEach(secondArray => {
         secondArray.forEach(element => {
-            let button = document.querySelector(`span[data-key=${element.key}]`);
-            let type = button.getAttribute('data-type');
-            if (lang == 'ru' && !caps && !shift) {
+            const button = document.querySelector(`span[data-key=${element.key}]`);
+            const type = button.getAttribute('data-type');
+            if (lang == 'ru' && !isCapsEnable && !isShiftEnable) {
                 button.innerText = element.valueRu;
-            } else if (lang == 'ru' && caps && !shift && type === 'letter') {
+            } else if (lang == 'ru' && isCapsEnable && !isShiftEnable && type === 'letter') {
                 button.innerText = element.shiftValueRu;
-            } else if (lang == 'ru' && caps && shift) {
+            } else if (lang == 'ru' && isCapsEnable && isShiftEnable) {
                 if (type === 'letter') {
                     button.innerText = element.valueRu;
                 } else if (type === 'digit') {
                     button.innerText = element.shiftValueRu;
                 }
-            } else if (lang == 'ru' && shift) {
+            } else if (lang == 'ru' && isShiftEnable) {
                 button.innerText = element.shiftValueRu;
             }
-            if (lang == 'en' && !caps && !shift) {
+            if (lang == 'en' && !isCapsEnable && !isShiftEnable) {
                 button.innerText = element.valueEn;
-            } else if (lang == 'en' && caps && !shift && type === 'letter') {
+            } else if (lang == 'en' && isCapsEnable && !isShiftEnable && type === 'letter') {
                 button.innerText = element.shiftValueEn;
-            } else if (lang == 'en' && caps && shift) {
+            } else if (lang == 'en' && isCapsEnable && isShiftEnable) {
                 if (type === 'letter') {
                     button.innerText = element.valueEn;
                 } else if (type === 'digit') {
                     button.innerText = element.shiftValueEn;
                 }
-            } else if (lang == 'en' && shift) {
+            } else if (lang == 'en' && isShiftEnable) {
                 button.innerText = element.shiftValueEn;
             }
         })
