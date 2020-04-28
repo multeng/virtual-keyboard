@@ -178,7 +178,8 @@ function handler() {
                 isCapsEnable = !isCapsEnable;
                 reMakeKeyboard(buttons);
                 break;
-            case 'ShiftLeft' || 'ShiftRight':
+            case 'ShiftLeft':
+            case 'ShiftRight':
                 isShiftEnable = !isShiftEnable;
                 reMakeKeyboard(buttons);
                 break;
@@ -244,9 +245,6 @@ function handler() {
                     textArea.value += ' ';
                     break;
                 case 'ShiftLeft':
-                    isShiftEnable = !isShiftEnable;
-                    reMakeKeyboard(buttons);
-                    break;
                 case 'ShiftRight':
                     isShiftEnable = !isShiftEnable;
                     reMakeKeyboard(buttons);
