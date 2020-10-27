@@ -5,8 +5,8 @@
 .form-container {
   margin-top: 7%;
   margin-bottom: 2%;
-  width: 50vw;
-  height: 27vh;
+  width: 800px;
+  height: 300px;
 }
 .form-container__textarea {
   width: 100%;
@@ -46,7 +46,6 @@
 }
 .description-container {
   font-size: 20px;
-  width: 50vw;
-  height: 10vh;
+  width: 765px;
   margin-top: 20px;
 }
