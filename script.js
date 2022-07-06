@@ -160,6 +160,7 @@ function makeButton(key, type, value) {
 function handler() {
     const body = document.getElementsByTagName('body')[0];
     //Обрабатываем keydown
+    console.log('some-test');
     body.addEventListener('keydown', event => {
         const button = document.querySelector(`span[data-key=${event.code}]`);
         button.classList.add('button__color');
